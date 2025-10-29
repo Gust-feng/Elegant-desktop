@@ -11,9 +11,8 @@
 ## 预览
 
 <p align="center">
-  <img src="assets/preview.gif" alt="课表与天气看板预览" style="max-width: 960px; width: 100%; border-radius: 8px;" />
+  <img src="aLSuAIEdyN.gif" alt="部分预览" style="max-width: 960px; width: 100%; border-radius: 8px;" />
   <br/>
-  <sub>若图片未显示，请将你的展示 GIF 放到 <code>assets/preview.gif</code>。</sub>
 </p>
 
 ---
