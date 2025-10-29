@@ -1,0 +1,326 @@
+/* ==================== 课表实时跟随样式 ==================== */
+/* BSOD蓝屏主题：极简设计，自然引导注意力 */
+
+/* 调课通知动画 */
+@keyframes slideInRight {
+	from {
+		opacity: 0;
+		transform: translateX(100px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes slideOutRight {
+	from {
+		opacity: 1;
+		transform: translateX(0);
+	}
+	to {
+		opacity: 0;
+		transform: translateX(100px);
+	}
+}
+
+.course-change-notification {
+	font-family: '微软雅黑', sans-serif;
+	user-select: none;
+}
+
+.notification-content {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.notification-icon {
+	font-size: 24px;
+	animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
+
+.notification-text {
+	letter-spacing: 0.5px;
+}
+
+/* 课程状态标记容器 - 极简设计 */
+.course-status-marker {
+	display: inline-block;
+	margin-left: 12px;
+	padding: 0;
+	font-size: 11px;
+	font-weight: 500;
+	letter-spacing: 0.8px;
+	font-family: 'Consolas', 'Monaco', monospace;
+	opacity: 0;
+	animation: markerSlideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+	text-transform: uppercase;
+	line-height: 1.6;
+}
+
+@keyframes markerSlideIn {
+	from {
+		opacity: 0;
+		transform: translateX(-8px);
+	}
+	to {
+		opacity: 0.9;
+		transform: translateX(0);
+	}
+}
+
+/* 正在上课标记 - 微妙的左侧指示条 */
+.course-item-highlight.in-class {
+	position: relative;
+	padding-left: 18px;
+	transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.course-item-highlight.in-class::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 3px;
+	height: 60%;
+	background: rgba(100, 200, 255, 0.75);
+	border-radius: 2px;
+	animation: indicatorPulse 3s ease-in-out infinite;
+	box-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+}
+
+.in-class-marker {
+	color: rgba(120, 210, 255, 0.95);
+	animation: textGlow 3s ease-in-out infinite;
+}
+
+/* 时间描述文字 - 统一样式 */
+.in-class-marker .time-desc,
+.upcoming-marker .time-desc {
+	font-size: 11px;
+	opacity: 0.85;
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	margin: 0 3px;
+	text-transform: none;
+	font-family: '微软雅黑', sans-serif;
+}
+
+/* 时间数值在描述中的样式 */
+.time-desc .time-value {
+	padding: 2px 8px;
+	font-size: 13px;
+	margin: 0 3px;
+	background: rgba(100, 200, 255, 0.15);
+	border-radius: 2px;
+	font-weight: 700;
+	display: inline-block;
+	min-width: 48px;
+	text-align: center;
+	transition: all 0.3s ease;
+}
+
+/* 指示条呼吸效果 */
+@keyframes indicatorPulse {
+	0%, 100% {
+		opacity: 0.75;
+		height: 60%;
+		box-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+	}
+	50% {
+		opacity: 1;
+		height: 70%;
+		box-shadow: 0 0 16px rgba(100, 200, 255, 0.7);
+	}
+}
+
+/* 文字柔和发光 */
+@keyframes textGlow {
+	0%, 100% {
+		opacity: 0.9;
+		text-shadow: 0 0 5px rgba(100, 200, 255, 0.35);
+	}
+	50% {
+		opacity: 1;
+		text-shadow: 0 0 10px rgba(100, 200, 255, 0.55);
+	}
+}
+
+/* 即将上课标记 - 青蓝色静态背景 */
+.course-item-highlight.upcoming {
+	position: relative;
+	background: linear-gradient(
+		90deg,
+		rgba(60, 160, 230, 0.08) 0%,
+		rgba(80, 180, 240, 0.15) 100%
+	);
+	padding-left: 18px;
+	border-left: 3px solid rgba(100, 180, 240, 0.7);
+	box-shadow: inset 0 0 25px rgba(80, 180, 240, 0.1);
+	transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.upcoming-marker {
+	color: rgba(200, 230, 255, 1);
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	flex-wrap: wrap;
+}
+
+/* 时间数值 - 简约高亮 */
+.upcoming-marker .time-value {
+	display: inline-block;
+	padding: 3px 10px;
+	background: rgba(100, 200, 255, 0.18);
+	color: rgba(255, 255, 255, 1);
+	border-radius: 2px;
+	font-weight: 700;
+	font-size: 14px;
+	letter-spacing: 0.5px;
+	font-family: 'Consolas', 'Monaco', monospace;
+	box-shadow: inset 0 0 12px rgba(100, 200, 255, 0.25);
+	animation: timeBoxGlow 2.5s ease-in-out infinite;
+	min-width: 52px;
+	text-align: center;
+	transition: all 0.3s ease;
+}
+
+/* 时间盒子发光 */
+@keyframes timeBoxGlow {
+	0%, 100% {
+		background: rgba(100, 200, 255, 0.18);
+		box-shadow: inset 0 0 12px rgba(100, 200, 255, 0.25);
+	}
+	50% {
+		background: rgba(100, 200, 255, 0.28);
+		box-shadow: inset 0 0 18px rgba(100, 200, 255, 0.4);
+	}
+}
+
+/* 明天课程 - 立体空间感线条标识（覆盖整个课程项高度） */
+.course-item-highlight.tomorrow {
+	position: relative;
+	padding-left: 18px;
+}
+
+.course-item-highlight.tomorrow::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+	width: 3px;
+	background: rgba(100, 220, 255, 0.95);
+	border-left: 1px solid rgba(150, 240, 255, 1);
+	border-right: 1px solid rgba(50, 180, 230, 0.8);
+	box-shadow: 
+		-1px 0 0 rgba(150, 240, 255, 0.4),
+		1px 0 0 rgba(0, 0, 0, 0.3),
+		2px 0 4px rgba(0, 0, 0, 0.2),
+		inset 1px 0 1px rgba(255, 255, 255, 0.5),
+		inset -1px 0 1px rgba(0, 120, 180, 0.5);
+}
+
+/* 已完成的课程 - 删除线效果（增强青色） */
+.day-completed {
+	position: relative;
+	opacity: 0.5;
+	transition: opacity 0.6s ease;
+}
+
+.day-completed .course-name,
+.day-completed .course-detail {
+	text-decoration: line-through;
+	text-decoration-color: rgba(100, 220, 255, 0.85);
+	text-decoration-thickness: 1.5px;
+}
+
+/* 课程详情样式调整 */
+.course-detail {
+	position: relative;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 2px;
+}
+
+/* 优化过渡效果 */
+.course-item-highlight {
+	transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* 悬停效果增强 */
+.course-item-highlight.in-class:hover::before {
+	height: 80%;
+	box-shadow: 0 0 18px rgba(100, 200, 255, 0.7);
+}
+
+.course-item-highlight.upcoming:hover {
+	background: linear-gradient(
+		90deg,
+		rgba(60, 160, 230, 0.12) 0%,
+		rgba(80, 180, 240, 0.2) 100%
+	);
+}
+
+.course-item-highlight.tomorrow:hover {
+	border-color: rgba(100, 150, 200, 0.5);
+}
+
+/* 响应式调整 */
+@media (max-width: 600px) {
+	.course-status-marker {
+		font-size: 10px;
+		margin-left: 8px;
+		letter-spacing: 0.5px;
+	}
+	
+	.tomorrow-hint {
+		font-size: 8px;
+		padding: 3px 7px;
+	}
+	
+	.course-item-highlight.in-class,
+	.course-item-highlight.upcoming {
+		padding-left: 15px;
+	}
+	
+	.in-class-marker .time-desc,
+	.upcoming-marker .time-desc {
+		font-size: 10px;
+	}
+	
+	.time-desc .time-value {
+		font-size: 12px;
+		padding: 2px 7px;
+		min-width: 42px;
+	}
+	
+	.upcoming-marker .time-value {
+		font-size: 13px;
+		padding: 2px 8px;
+		min-width: 46px;
+	}
+}
+
+/* 性能优化 */
+.course-item-highlight {
+	will-change: background, box-shadow, border-color;
+}
+
+.course-item-highlight::before {
+	will-change: opacity, height, transform;
+}

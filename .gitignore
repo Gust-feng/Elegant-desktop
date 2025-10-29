@@ -1,0 +1,20 @@
+大二上课表
+其他文件
+后续优化 
+课表.py
+获取动态密钥.py
+token_cache.json
+
+# Logs
+logs/
+*.log
+
+# Python cache and envs
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Environment files
+.env
+.env.*

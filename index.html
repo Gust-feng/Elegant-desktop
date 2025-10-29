@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
+		<link rel="stylesheet" href="schedule.css">
+		<link rel="stylesheet" href="schedule-live.css">
+	</head>
+	<style type="text/css">
+		*{
+			padding: 0;
+			margin: 0;
+			list-style: none;
+			font-family: "微软雅黑";
+			cursor: default;
+		}
+		body{background: rgb(9,125,208);}
+		.div_1{color: white; margin: 225px 0 0 400px;}
+		.a_1{font-size: 70px; line-height: 70px; margin-top: 40px; float: left;}
+		.a_2{font-size: 150px;}
+		.div_2{margin: 10px 0 0 400px;}
+		.p_1{width: 1000px; overflow: hidden; font-size: 44px; color: white;}
+		.p_2{width: 1000px; overflow: hidden; color: white; margin-top: 250px;}
+		.weather-container{position: fixed; top: 40px; right: 40px; color: white; font-size: 18px; background: linear-gradient(135deg, rgba(0,20,40,0.4) 0%, rgba(0,0,0,0.3) 100%); border-radius: 16px; backdrop-filter: blur(15px); opacity: 0; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 20px rgba(100,200,255,0.15); border: 1px solid rgba(255,255,255,0.18); width: 320px; transform: translateY(10px); user-select: none;}
+		.weather-container.visible{opacity: 1; transform: translateY(0);}
+		.weather-container.permanent{opacity: 0.85; box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 25px rgba(100,200,255,0.25);}
+		.weather-container:hover{opacity: 1 !important; box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.15), 0 0 30px rgba(100,200,255,0.3);}
+		.weather-icon-container{flex-shrink: 0;}
+		#weatherIcon{font-size: 72px; color: rgba(255,255,255,1); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+			text-shadow: 0 2px 10px rgba(0,0,0,0.3), 
+			             0 0 15px rgba(255,255,255,0.3),
+			             0 0 25px rgba(255,255,255,0.2),
+			             0 0 35px rgba(255,255,255,0.1);}
+		.weather-content{flex: 1; text-align: right;}
+		.weather-temp{font-size: 52px; font-weight: 600; margin-bottom: 14px; letter-spacing: -0.5px; line-height: 1.1; text-shadow: 0 1px 3px rgba(0,0,0,0.4); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; transition: opacity 0.15s ease;}
+		.weather-info{font-size: 20px; opacity: 0.95; margin-bottom: 14px; font-weight: 500; line-height: 1.4; letter-spacing: 0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; transition: opacity 0.15s ease;}
+		.weather-time{font-size: 14px; opacity: 0.75; font-weight: 500; letter-spacing: 0.8px; text-shadow: 0 1px 2px rgba(0,0,0,0.3); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; transition: opacity 0.15s ease;}
+		#weatherIcon{transition: transform 0.6s ease;}
+
+		
+		/* 主要信息区域 */
+		.weather-main{padding: 24px 28px; display: flex; align-items: center; gap: 20px; cursor: pointer; transition: all 0.3s ease; border-radius: 16px 16px 0 0; position: relative;}
+		.weather-main::before{content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); border-radius: 16px 16px 0 0; transition: all 0.3s ease; pointer-events: none;}
+		.weather-main:hover::before{background: rgba(255,255,255,0.05);}
+		.weather-main:active::before{background: rgba(255,255,255,0.1);}
+		.weather-main:active{transform: scale(0.98);}
+		.weather-main.refreshing{animation: refreshPulse 0.6s ease;}
+		@keyframes refreshPulse{
+			0%, 100%{opacity: 1;}
+			50%{opacity: 0.6;}
+		}
+		
+		/* 展开按钮区域 */
+		.weather-expand-btn{padding: 12px 28px; border-top: 1px solid rgba(255,255,255,0.12); cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; opacity: 0.7; border-radius: 0 0 16px 16px; position: relative; font-weight: 500;}
+		.weather-expand-btn::before{content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); border-radius: 0 0 16px 16px; transition: all 0.3s ease; pointer-events: none;}
+		.weather-expand-btn:hover{opacity: 1;}
+		.weather-expand-btn:hover::before{background: rgba(255,255,255,0.08);}
+		.weather-expand-btn:active::before{background: rgba(255,255,255,0.15);}
+		.weather-expand-btn:active{transform: scale(0.97);}
+		.expand-icon{transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); font-size: 12px; display: inline-block;}
+		.expand-icon.expanded{transform: rotate(180deg);}
+		.expand-text{transition: all 0.3s ease;}
+		
+		/* 预报面板 */
+		.weather-forecast{position: absolute; top: 100%; right: 0; margin-top: 12px; background: linear-gradient(135deg, rgba(0,20,40,0.95) 0%, rgba(0,0,0,0.9) 100%); border-radius: 12px; backdrop-filter: blur(15px); box-shadow: 0 10px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.18); width: 320px; overflow: hidden; max-height: 0; opacity: 0; transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); transform: translateY(-10px); user-select: none;}
+		.weather-forecast.show{max-height: 500px; opacity: 1; transform: translateY(0);}
+		.forecast-item{padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s ease; position: relative;}
+		.forecast-item::before{content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: all 0.2s ease; pointer-events: none;}
+		.forecast-item:last-child{border-bottom: none;}
+		.forecast-item:hover::before{background: rgba(255,255,255,0.05);}
+		.forecast-item:hover{transform: translateX(-2px);}
+		.forecast-date{font-size: 15px; font-weight: 500; opacity: 0.9; min-width: 60px;}
+		.forecast-weather{display: flex; align-items: center; gap: 12px; flex: 1; justify-content: center;}
+		.forecast-icon{font-size: 28px; transition: transform 0.3s ease;}
+		.forecast-item:hover .forecast-icon{transform: scale(1.15) rotate(5deg);}
+		.forecast-desc{font-size: 14px; opacity: 0.85;}
+		.forecast-temp{font-size: 16px; font-weight: 600; opacity: 0.95; min-width: 80px; text-align: right;}
+		
+		/* 加载动画 */
+		@keyframes shimmer{
+			0%{background-position: -200% 0;}
+			100%{background-position: 200% 0;}
+		}
+		.loading-shimmer{
+			background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+			background-size: 200% 100%;
+			animation: shimmer 1.5s infinite;
+		}
+		
+		/* 刷新提示 */
+		.refresh-hint{
+			position: absolute; 
+			top: -8px; 
+			right: 28px; 
+			font-size: 11px; 
+			color: rgba(255,255,255,0.5); 
+			background: rgba(0,20,40,0.8); 
+			padding: 4px 10px; 
+			border-radius: 20px; 
+			opacity: 0; 
+			pointer-events: none; 
+			transition: all 0.3s ease; 
+			white-space: nowrap;
+			border: 1px solid rgba(255,255,255,0.15);
+		}
+		.weather-main:hover .refresh-hint{
+			opacity: 1; 
+			top: -12px;
+		}
+		
+		/* 成功提示动画 */
+		@keyframes successPulse{
+			0%{transform: scale(1); opacity: 1;}
+			50%{transform: scale(1.05); opacity: 0.8;}
+			100%{transform: scale(1); opacity: 1;}
+		}
+		.refresh-success{
+			animation: successPulse 0.4s ease;
+		}
+		
+		/* 刷新成功提示 */
+		.refresh-message{
+			position: absolute;
+			bottom: 20px;
+			left: 35px;
+			font-size: 12px;
+			color: rgba(100, 200, 255, 0.9);
+			opacity: 0;
+			pointer-events: none;
+			white-space: nowrap;
+			overflow: hidden;
+			font-weight: 500;
+			letter-spacing: 0.5px;
+		}
+		.refresh-message.show{
+			animation: typewriter 0.8s steps(8) forwards, fadeOut 0.3s ease 2.5s forwards;
+		}
+		@keyframes typewriter{
+			from{
+				width: 0;
+				opacity: 1;
+			}
+			to{
+				width: 8em;
+				opacity: 1;
+			}
+		}
+		@keyframes fadeOut{
+			to{
+				opacity: 0;
+			}
+		}
+	</style>
+	<body>
+		<div class="div_1">
+			<a class="a_1">•<br>•</a>
+			<a class="a_2">(</a>
+		</div>
+		<div class="div_2">
+			<p class="p_1">你的电脑遇到问题，需要更换新机。</p>
+			<p class="p_1">我们只收集某些错误信息，然后为你自爆机子。</p>
+			<p class="p_2">如果你想了解更对信息，则可以稍后再搜索此错误 : POEG_MA_EI_OODANUD_ET _SA_TõLGID</p>
+		</div>
+		<div class="weather-container" id="weatherContainer">
+			<div class="weather-main" id="weatherMain">
+				<div class="weather-icon-container">
+					<i id="weatherIcon" class="wi wi-day-sunny" style="font-size: 72px; color: white;"></i>
+				</div>
+				<div class="weather-content">
+					<div class="weather-temp" id="weatherTemp">--°C</div>
+					<div class="weather-info" id="weatherInfo">--</div>
+					<div class="weather-time" id="weatherTime">--</div>
+				</div>
+				<div class="refresh-message" id="refreshMessage">天气刷新成功</div>
+			</div>
+			<div class="weather-expand-btn" id="weatherExpandBtn">
+				<span class="expand-text">加载更多</span>
+				<span class="expand-icon" id="expandIcon">▼</span>
+			</div>
+			<div class="weather-forecast" id="weatherForecast"></div>
+		</div>
+
+		<!-- 课表组件 -->
+		<div class="schedule-trigger" id="scheduleTrigger"></div>
+		<div class="schedule-container" id="scheduleContainer">
+			<table class="schedule-table" id="scheduleTable">
+				<tbody id="scheduleBody">
+					<!-- 将由JavaScript动态生成 -->
+				</tbody>
+			</table>
+			<div class="schedule-quote" id="scheduleQuote">
+				<div class="quote-content">加载中...</div>
+			</div>
+		</div>
+	</body>
+	<script type="text/javascript">
+		// 天气功能
+		const API_KEY = '高德web密钥';
+		const CITY_CODE = '地理编码';
+		const BASE_URL = 'https://restapi.amap.com/v3/weather/weatherInfo';
+
+		let lastBaseUpdate = 0;
+		let lastAllUpdate = 0;
+		let currentWeather = null;
+		let forecastWeather = null;
+		let weatherVisible = false;
+		let weatherHoverTimer = null;
+		let forecastExpanded = false;
+		let isManualRefresh = false;
+		
+		// 重试定时器（防止重复调用累积）
+		let baseWeatherRetryTimer = null;
+		let allWeatherRetryTimer = null;
+
+		// 获取天气图标类名
+		function getWeatherIconClass(weather) {
+			if (!weather) return 'wi-day-sunny';
+			
+			const weatherMap = {
+				'晴': 'wi-day-sunny',
+				'多云': 'wi-day-cloudy',
+				'阴': 'wi-day-cloudy',
+				'小雨': 'wi-day-rain',
+				'中雨': 'wi-day-rain',
+				'大雨': 'wi-day-rain',
+				'暴雨': 'wi-day-rain',
+				'雷阵雨': 'wi-day-thunderstorm',
+				'雪': 'wi-day-snow',
+				'小雪': 'wi-day-snow',
+				'中雪': 'wi-day-snow',
+				'大雪': 'wi-day-snow',
+				'暴雪': 'wi-day-snow',
+				'雾': 'wi-day-fog',
+				'霾': 'wi-day-haze',
+				'沙尘': 'wi-dust',
+				'扬沙': 'wi-dust',
+				'大风': 'wi-strong-wind',
+				'台风': 'wi-hurricane'
+			};
+			
+			// 查找匹配的天气
+			for (let key in weatherMap) {
+				if (weather.includes(key)) {
+					return weatherMap[key];
+				}
+			}
+			
+			// 默认返回晴天图标
+			return 'wi-day-sunny';
+		}
+
+		// 获取base天气
+		async function fetchBaseWeather() {
+			// 清除之前的重试定时器
+			if (baseWeatherRetryTimer) {
+				clearTimeout(baseWeatherRetryTimer);
+				baseWeatherRetryTimer = null;
+			}
+			
+			try {
+				const response = await fetch(`${BASE_URL}?key=${API_KEY}&city=${CITY_CODE}&extensions=base&output=json`);
+				const data = await response.json();
+				if (data.status === '1' && data.lives && data.lives.length > 0) {
+					currentWeather = data.lives[0];
+					updateWeatherDisplay();
+					lastBaseUpdate = Date.now();
+					// 只在手动刷新时显示提示
+					if (isManualRefresh) {
+						showRefreshSuccess();
+						isManualRefresh = false;
+					}
+				} else {
+					// 5秒后重试
+					baseWeatherRetryTimer = setTimeout(fetchBaseWeather, 5000);
+				}
+			} catch (error) {
+				showWeatherError();
+				// 10秒后重试
+				baseWeatherRetryTimer = setTimeout(fetchBaseWeather, 10000);
+			}
+		}
+
+		// 获取all天气
+		async function fetchAllWeather() {
+			// 清除之前的重试定时器
+			if (allWeatherRetryTimer) {
+				clearTimeout(allWeatherRetryTimer);
+				allWeatherRetryTimer = null;
+			}
+			
+			try {
+				const response = await fetch(`${BASE_URL}?key=${API_KEY}&city=${CITY_CODE}&extensions=all&output=json`);
+				const data = await response.json();
+				if (data.status === '1' && data.forecasts && data.forecasts.length > 0) {
+					forecastWeather = data.forecasts[0];
+					updateForecastDisplay();
+					lastAllUpdate = Date.now();
+				} else {
+					// 30秒后重试
+					allWeatherRetryTimer = setTimeout(fetchAllWeather, 30000);
+				}
+			} catch (error) {
+				// 60秒后重试
+				allWeatherRetryTimer = setTimeout(fetchAllWeather, 60000);
+			}
+		}
+
+		// 更新天气显示
+		function updateWeatherDisplay() {
+			if (currentWeather) {
+				const tempEl = document.getElementById('weatherTemp');
+				const infoEl = document.getElementById('weatherInfo');
+				const timeEl = document.getElementById('weatherTime');
+				const iconEl = document.getElementById('weatherIcon');
+				
+				// 直接更新，不改变透明度
+				tempEl.textContent = currentWeather.temperature + '°C';
+				infoEl.textContent = currentWeather.weather + ' | ' + currentWeather.winddirection + '风';
+				timeEl.textContent = '更新: ' + new Date(currentWeather.reporttime).toLocaleTimeString('zh-CN', {hour: '2-digit', minute: '2-digit'});
+				
+				// 更新天气图标
+				const iconClass = getWeatherIconClass(currentWeather.weather);
+				iconEl.className = 'wi ' + iconClass;
+				
+				// 检查是否应该显示天气
+				checkWeatherVisibility();
+				
+				// 如果是雨天，简化显示
+				if (currentWeather.weather.includes('雨')) {
+					infoEl.textContent = currentWeather.weather;
+				}
+			}
+		}
+
+		// 更新预报显示
+		function updateForecastDisplay() {
+			if (!forecastWeather || !forecastWeather.casts) return;
+			
+			const forecastPanel = document.getElementById('weatherForecast');
+			let html = '';
+			
+			// 获取日期名称
+			function getDateName(index) {
+				const names = ['今天', '明天', '后天'];
+				if (index < names.length) return names[index];
+				const date = new Date();
+				date.setDate(date.getDate() + index);
+				const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+				return weekdays[date.getDay()];
+			}
+			
+			// 显示最多4天的预报
+			const maxDays = Math.min(forecastWeather.casts.length, 4);
+			for (let i = 0; i < maxDays; i++) {
+				const cast = forecastWeather.casts[i];
+				const iconClass = getWeatherIconClass(cast.dayweather);
+				const isToday = i === 0;
+				html += `
+					<div class="forecast-item" style="animation-delay: ${i * 0.05}s;">
+						<div class="forecast-date" style="font-weight: ${isToday ? '600' : '500'}; opacity: ${isToday ? '1' : '0.9'};">${getDateName(i)}</div>
+						<div class="forecast-weather">
+							<i class="wi ${iconClass} forecast-icon"></i>
+							<span class="forecast-desc">${cast.dayweather}</span>
+						</div>
+						<div class="forecast-temp">${cast.nighttemp}° ~ ${cast.daytemp}°</div>
+					</div>
+				`;
+			}
+			
+			forecastPanel.innerHTML = html;
+		}
+
+		// 切换预报展开状态
+		function toggleForecast() {
+			forecastExpanded = !forecastExpanded;
+			const forecastPanel = document.getElementById('weatherForecast');
+			const expandIcon = document.getElementById('expandIcon');
+			const expandText = document.querySelector('.expand-text');
+			
+			if (forecastExpanded) {
+				forecastPanel.classList.add('show');
+				expandIcon.classList.add('expanded');
+				if (expandText) expandText.textContent = '收起预报';
+			} else {
+				forecastPanel.classList.remove('show');
+				expandIcon.classList.remove('expanded');
+				if (expandText) expandText.textContent = '再次查看';
+			}
+		}
+
+		// 刷新天气数据
+		function refreshWeatherData() {
+			// 标记为手动刷新
+			isManualRefresh = true;
+			
+			// 清除重试定时器
+			if (baseWeatherRetryTimer) {
+				clearTimeout(baseWeatherRetryTimer);
+				baseWeatherRetryTimer = null;
+			}
+			if (allWeatherRetryTimer) {
+				clearTimeout(allWeatherRetryTimer);
+				allWeatherRetryTimer = null;
+			}
+			
+			// 只让图标旋转
+			const weatherIcon = document.getElementById('weatherIcon');
+			
+			// 图标旋转360度（不回弹）
+			const currentRotation = parseFloat(weatherIcon.style.transform.replace(/[^\d.-]/g, '')) || 0;
+			weatherIcon.style.transform = `rotate(${currentRotation + 360}deg)`;
+			
+			// 强制刷新数据
+			lastBaseUpdate = 0;
+			lastAllUpdate = 0;
+			fetchBaseWeather();
+			fetchAllWeather();
+		}
+
+		// 显示刷新成功提示
+		function showRefreshSuccess() {
+			const refreshMessage = document.getElementById('refreshMessage');
+			if (!refreshMessage) return;
+			
+			// 移除旧动画
+			refreshMessage.classList.remove('show');
+			
+			// 触发重排以重启动画
+			void refreshMessage.offsetWidth;
+			
+			// 添加新动画
+			refreshMessage.classList.add('show');
+			
+			// 2.8秒后移除class
+			setTimeout(() => {
+				refreshMessage.classList.remove('show');
+			}, 2800);
+		}
+
+		// 检查天气可见性
+		function checkWeatherVisibility() {
+			const weatherContainer = document.getElementById('weatherContainer');
+			const isRaining = currentWeather && currentWeather.weather.includes('雨');
+			
+			if (isRaining) {
+				weatherContainer.classList.add('permanent');
+				weatherContainer.classList.remove('visible');
+			} else {
+				weatherContainer.classList.remove('permanent');
+				if (!weatherVisible) {
+					weatherContainer.classList.remove('visible');
+				}
+			}
+		}
+
+		// 显示天气错误
+		function showWeatherError() {
+			document.getElementById('weatherTemp').textContent = '--°C';
+			document.getElementById('weatherInfo').textContent = '天气数据获取失败';
+			document.getElementById('weatherTime').textContent = '请检查网络连接';
+		}
+
+		// 检查是否需要更新天气
+		function checkWeatherUpdate() {
+			const now = Date.now();
+			const baseInterval = 30 * 60 * 1000; // 30分钟
+			const allInterval = 3 * 60 * 60 * 1000; // 3小时
+
+			// 检查base天气更新
+			if (now - lastBaseUpdate >= baseInterval) {
+				fetchBaseWeather();
+			}
+
+			// 检查all天气更新
+			if (now - lastAllUpdate >= allInterval) {
+				fetchAllWeather();
+			}
+		}
+
+		// 网络状态监听
+		function setupNetworkListeners() {
+			// 在线时立即更新
+			window.addEventListener('online', function() {
+				lastBaseUpdate = 0;
+				lastAllUpdate = 0;
+				fetchBaseWeather();
+				fetchAllWeather();
+			});
+		}
+
+		// 初始化天气功能
+		function initWeather() {
+			// 立即获取数据
+			fetchBaseWeather();
+			fetchAllWeather();
+			
+			// 设置网络监听
+			setupNetworkListeners();
+			
+			// 设置定时更新
+			setInterval(checkWeatherUpdate, 60000); // 每分钟检查一次
+			
+			// 页面可见性改变时立即更新
+			document.addEventListener('visibilitychange', function() {
+				if (!document.hidden) {
+					// 页面变为可见时，强制刷新数据
+					lastBaseUpdate = 0;
+					lastAllUpdate = 0;
+					fetchBaseWeather();
+					fetchAllWeather();
+				}
+			});
+			
+		// 鼠标悬停事件
+		const weatherContainer = document.getElementById('weatherContainer');
+		
+		weatherContainer.addEventListener('mouseenter', function() {
+			clearTimeout(weatherHoverTimer);
+			weatherVisible = true;
+			weatherContainer.classList.add('visible');
+		});
+		weatherContainer.addEventListener('mouseleave', function() {
+			weatherHoverTimer = setTimeout(() => {
+				weatherVisible = false;
+				checkWeatherVisibility();
+				// 恢复默认状态：收起预报面板并重置文字
+				if (forecastExpanded) {
+					toggleForecast();
+				}
+				// 重置文字为"加载更多"
+				const expandText = document.querySelector('.expand-text');
+				if (expandText) expandText.textContent = '加载更多';
+			}, 500);
+		});			// 点击主要区域刷新数据
+			document.getElementById('weatherMain').addEventListener('click', function(e) {
+				e.stopPropagation();
+				refreshWeatherData();
+			});
+			
+			// 点击展开按钮切换预报
+			document.getElementById('weatherExpandBtn').addEventListener('click', function(e) {
+				e.stopPropagation();
+				toggleForecast();
+			});
+		}
+
+		// 页面加载完成后初始化天气功能
+		window.addEventListener('load', initWeather);
+	</script>
+	<script src="schedule.js"></script>
+	<script src="schedule-live.js"></script>
+</html>
