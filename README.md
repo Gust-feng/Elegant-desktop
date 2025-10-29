@@ -8,6 +8,14 @@
 
 </div>
 
+## 预览
+
+<p align="center">
+  <img src="assets/preview.gif" alt="课表与天气看板预览" style="max-width: 960px; width: 100%; border-radius: 8px;" />
+  <br/>
+  <sub>若图片未显示，请将你的展示 GIF 放到 <code>assets/preview.gif</code>。</sub>
+</p>
+
 ---
 
 ## 目录
@@ -189,3 +197,5 @@ python 课表爬虫.py
 - 一言 API：hitokoto.cn
 
 如需扩展（多校区/更多提醒/导出 ICS 等），欢迎在此基础上继续创作。祝使用愉快！
+
+D
