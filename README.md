@@ -1,6 +1,6 @@
 <div align="center">
 
-# 优雅的桌面 · 课表 × 天气
+# 优雅的桌面 · 课表 × 天气 × <img src="597a5b30dc4f8d3eec1e732a8735d1fd.png" alt="HNSVU" height="24" style="vertical-align: middle;" />
 
 把一周的课程与当下的天气，优雅地带到你的桌面上。
 
