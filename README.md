@@ -46,13 +46,18 @@
 
 ## 一分钟上手
 
-1) 安装依赖（首次）
+1) **安装依赖**（首次）
 
+```powershell
+pip install -r requirements.txt
+```
+
+或手动安装：
 ```powershell
 pip install requests pycryptodome
 ```
 
-2) 填写账号密码（仅本机使用）
+2) **填写账号密码**（仅本机使用）
 
 - 打开 `课表爬虫.py`，修改文件顶部：
   - `USER_NO = "你的学号"`

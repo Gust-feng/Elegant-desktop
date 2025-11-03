@@ -1,0 +1,7 @@
+# 安装命令: pip install -r requirements.txt
+
+# HTTP请求库 - 用于API调用和网络请求
+requests>=2.31.0
+
+# 加密库 - 用于AES加密密码
+pycryptodome>=3.19.0
