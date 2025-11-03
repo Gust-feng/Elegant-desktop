@@ -44,8 +44,8 @@
   <Actions Context="Author">
     <Exec>
       <Command>wscript.exe</Command>
-      <Arguments>run_silent.vbs</Arguments>
-      <WorkingDirectory>.</WorkingDirectory>
+      <Arguments>"$(WorkingDirectory)\run_silent.vbs"</Arguments>
+      <WorkingDirectory>z:\优雅的桌面</WorkingDirectory>
     </Exec>
   </Actions>
 </Task>

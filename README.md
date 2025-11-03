@@ -121,13 +121,33 @@ python 课表爬虫.py
 
 ## 自动化（Windows 任务计划）
 
-- 创建任务（管理员运行）：`setup_task_scheduler.bat`
-  - 任务模板：`task_*.xml`
-  - 周期：工作日 11:50 / 19:50；周末 19:50
-- 删除任务：`remove_task_scheduler.bat`
-- 静默运行：`run_silent.vbs` 调用 `auto_update_schedule.bat`
+### 一键设置（推荐）
 
-路径说明：`auto_update_schedule.bat` 现在会自动切换到脚本所在目录并相对运行，无需手动改盘符路径；如使用虚拟环境，请将其放在项目目录下的 `venv/`，日志默认写入 `logs\schedule_update_YYYY-MM.log`。
+以管理员身份运行：
+
+```powershell
+.\setup_task_scheduler_dynamic.bat
+```
+
+这个脚本会：
+- 自动检测项目所在路径
+- 动态生成配置文件到 `temp_config/` 目录
+- 创建3个定时任务（工作日 11:50/19:50，周末 19:50）
+
+### 其他操作
+
+- **删除任务**：`remove_task_scheduler.bat`
+- **手动触发**：`run_tasks_now.bat`
+- **查看日志**：`logs\schedule_update_YYYY-MM.log`
+
+### 技术细节
+
+- **静默运行**：`run_silent.vbs` 调用 `auto_update_schedule.bat`
+- **自动路径**：所有脚本使用相对路径，无需手动修改
+- **虚拟环境**：如果项目目录下有 `venv/`，会自动激活
+- **日志管理**：自动清理30天前的旧日志
+
+> **注意**：项目中的XML模板文件包含占位路径，实际使用时会动态替换为您的项目路径。
 
 ---
 

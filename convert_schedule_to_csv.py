@@ -103,36 +103,20 @@ def convert_schedule_to_csv(json_path, csv_path=None):
         return False
 
 def main():
-    # 优先使用项目内相对目录：.\大二上课表\*.json
-    base_dir = os.path.dirname(__file__)
-    schedule_dir = os.path.join(base_dir, "大二上课表")
-
-    candidate = None
-    if os.path.isdir(schedule_dir):
-        # 按文件名中的数字周次排序，找最大的一个；找不到则按修改时间最新
-        json_files = [
-            os.path.join(schedule_dir, f)
-            for f in os.listdir(schedule_dir)
-            if f.lower().endswith('.json')
-        ]
-        if json_files:
-            def week_num(path):
-                name = os.path.splitext(os.path.basename(path))[0]
-                return int(name) if name.isdigit() else -1
-            # 先尝试按文件名周次排序
-            by_week = sorted(json_files, key=week_num, reverse=True)
-            candidate = by_week[0]
-            # 如果最大周次是 -1（未匹配），则按mtime排序
-            if week_num(candidate) == -1:
-                candidate = sorted(json_files, key=lambda p: os.path.getmtime(p), reverse=True)[0]
-
-    if not candidate:
-        print("错误：未找到任何课表 JSON 文件。请先运行 '课表爬虫.py' 生成数据，或手动指定路径。")
+    # 使用相对路径（脚本所在目录下的子目录）
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    default_json_path = os.path.join(script_dir, "大二上课表", "9.json")
+    
+    # 检查文件是否存在
+    if not os.path.exists(default_json_path):
+        print(f"错误：默认文件不存在 {default_json_path}")
+        print("请修改脚本中的文件路径或提供正确的文件路径")
+        print(f"当前脚本目录: {script_dir}")
         return
-
+    
     # 执行转换
-    success = convert_schedule_to_csv(candidate)
-
+    success = convert_schedule_to_csv(default_json_path)
+    
     if success:
         print("\n转换完成！")
     else:

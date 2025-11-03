@@ -4,7 +4,7 @@
 	bottom: 0;
 	right: 40px;
 	width: 520px;
-	height: 220px;
+	height: 280px; /* 从220px增加到280px，提供更大的点击区域 */
 	background: transparent;
 	border: none;
 	cursor: default;
@@ -34,14 +34,12 @@
 	box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 20px rgba(100,200,255,0.15);
 	border: 1px solid rgba(255,255,255,0.18);
 	width: 520px;
-	max-height: 70vh;
-	overflow-y: auto;
-	overflow-x: hidden;
 	transform: translateY(30px) scale(0.92);
 	user-select: none;
 	cursor: pointer;
 	z-index: 999;
 	pointer-events: none;
+	overflow: hidden;
 	padding: 0;
 }
 
@@ -230,6 +228,11 @@
 	letter-spacing: 0.3px;
 }
 
+.course-finished {
+	text-decoration: line-through;
+	opacity: 0.45;
+}
+
 .course-sessions {
 	display: flex;
 	flex-direction: column;
@@ -262,6 +265,25 @@
 	align-items: center;
 	justify-content: center;
 	gap: 2px;
+}
+
+.schedule-location.multi {
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 6px;
+}
+
+.location-entry {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	padding: 2px 0;
+}
+
+.location-entry + .location-entry {
+	border-top: 1px solid rgba(255,255,255,0.08);
+	padding-top: 6px;
 }
 
 .location-main {
@@ -374,20 +396,3 @@
 	opacity: 0.9;
 }
 
-/* 滚动条样式 - 参考天气组件 */
-.schedule-container::-webkit-scrollbar {
-	width: 6px;
-}
-
-.schedule-container::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-.schedule-container::-webkit-scrollbar-thumb {
-	background: rgba(255,255,255,0.15);
-	border-radius: 3px;
-}
-
-.schedule-container::-webkit-scrollbar-thumb:hover {
-	background: rgba(255,255,255,0.25);
-}

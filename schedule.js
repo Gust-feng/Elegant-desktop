@@ -75,28 +75,16 @@ const WeekManager = {
 	shouldCheckNextWeek() {
 		const now = new Date();
 		const day = now.getDay(); // 0=周日, 6=周六
-		const hour = now.getHours();
 		
-		// 周末（周六或周日）且时间在 20:00-23:59 之间
+		// 周末（周六或周日）全天都应该显示下周课表
 		const isWeekend = (day === 0 || day === 6);
-		const isCheckTime = hour >= 20;
 		
-		if (!isWeekend || !isCheckTime) {
+		if (!isWeekend) {
 			return false;
 		}
 		
-		// 检查今天是否已经检查过
-		const lastLoad = this.getLastLoadTime();
-		if (lastLoad) {
-			const lastLoadDay = lastLoad.toDateString();
-			const todayDay = now.toDateString();
-			
-			// 如果今天已经成功加载过，就不再重复检查
-			if (lastLoadDay === todayDay) {
-				return false;
-			}
-		}
-		
+		// 周末模式：始终返回 true，让系统尝试加载最新的课表
+		// 不再检查"今天是否已加载"，因为可能有新的课表文件生成
 		return true;
 	},
 	
@@ -145,25 +133,70 @@ const WeekManager = {
 // ==================== 工具函数 ====================
 
 // 格式化教室名称为分行显示
+function timeStringToMinutes(value) {
+	if (!value || typeof value !== 'string') {
+		return 0;
+	}
+	const [hourStr, minuteStr] = value.split(':');
+	const hours = parseInt(hourStr, 10);
+	const minutes = parseInt(minuteStr, 10);
+	if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+		return 0;
+	}
+	return hours * 60 + minutes;
+}
+
 function formatLocation(location) {
-	if (!location) {
+	const buildParts = text => {
+		if (!text) {
+			return { main: '', detail: '' };
+		}
+		const parenIndex = text.indexOf('(');
+		if (parenIndex === -1) {
+			return { main: text, detail: '' };
+		}
+		return {
+			main: text.substring(0, parenIndex),
+			detail: text.substring(parenIndex)
+		};
+	};
+
+	if (!location || (Array.isArray(location) && location.length === 0)) {
 		return '<div class="schedule-location"></div>';
 	}
 	
-	const parenIndex = location.indexOf('(');
-	
-	if (parenIndex === -1) {
-		return `<div class="schedule-location">
-			<span class="location-main">${location}</span>
-		</div>`;
+	if (Array.isArray(location)) {
+		const uniqueEntries = [];
+		const seen = new Set();
+		location.forEach(entry => {
+			if (!entry) {
+				return;
+			}
+			if (seen.has(entry)) {
+				return;
+			}
+			seen.add(entry);
+			uniqueEntries.push(entry);
+		});
+
+		if (uniqueEntries.length === 0) {
+			return '<div class="schedule-location"></div>';
+		}
+
+		const entriesHtml = uniqueEntries.map(entry => {
+			const parts = buildParts(entry);
+			const detailHtml = parts.detail ? `<span class="location-detail">${parts.detail}</span>` : '';
+			return `<div class="location-entry"><span class="location-main">${parts.main}</span>${detailHtml}</div>`;
+		}).join('');
+
+		return `<div class="schedule-location multi">${entriesHtml}</div>`;
 	}
 	
-	const mainCode = location.substring(0, parenIndex);
-	const detail = location.substring(parenIndex);
-	
+	const parts = buildParts(location);
+	const detailHtml = parts.detail ? `<span class="location-detail">${parts.detail}</span>` : '';
 	return `<div class="schedule-location">
-		<span class="location-main">${mainCode}</span>
-		<span class="location-detail">${detail}</span>
+		<span class="location-main">${parts.main}</span>
+		${detailHtml}
 	</div>`;
 }
 
@@ -285,7 +318,7 @@ async function loadScheduleByWeek(weekNumber) {
 async function loadSchedule() {
 	console.log('[课表加载] 开始智能加载课表...');
 	
-	// 1. 检查是否应该尝试加载下周数据（周末晚上8点后）
+	// 1. 检查是否应该尝试加载下周数据（周末全天）
 	if (WeekManager.shouldCheckNextWeek()) {
 		const cachedWeek = WeekManager.getCachedWeek();
 		if (cachedWeek) {
@@ -298,6 +331,16 @@ async function loadSchedule() {
 				return;
 			} else {
 				console.log(`[课表加载] 下周课表不存在，继续使用当前周次`);
+			}
+		} else {
+			// 如果没有缓存，尝试扫描最新的课表文件
+			console.log(`[课表加载] 周末模式：没有缓存，扫描最新课表`);
+			for (let week = 22; week >= 1; week--) {
+				const success = await loadScheduleByWeek(week);
+				if (success) {
+					console.log(`[课表加载] ✓ 找到最新课表: 第 ${week} 周`);
+					return;
+				}
 			}
 		}
 	}
@@ -313,9 +356,9 @@ async function loadSchedule() {
 		console.log(`[课表加载] 缓存的周次加载失败，尝试扫描可用文件`);
 	}
 	
-	// 3. 扫描可用的课表文件 (1-22周)
+	// 3. 扫描可用的课表文件 (从最新到最旧)
 	console.log(`[课表加载] 扫描可用的课表文件...`);
-	for (let week = 1; week <= 22; week++) {
+	for (let week = 22; week >= 1; week--) {
 		const success = await loadScheduleByWeek(week);
 		if (success) {
 			console.log(`[课表加载] ✓ 找到可用课表: 第 ${week} 周`);
@@ -618,33 +661,59 @@ function renderScheduleList() {
 		
 		// 生成课程列表HTML
 		const coursesHtml = mergedCourses.map(item => {
+			const sessions = item.sessions ?? [{ time: item.time, location: item.location }].filter(Boolean);
+			let isFinished = false;
+			if (dayItem.weekDay < today) {
+				isFinished = true;
+			} else if (dayItem.weekDay === today) {
+				isFinished = sessions.every(session => {
+					if (!session || !session.time) {
+						return false;
+					}
+					const parts = session.time.split('-');
+					const end = parts.length > 1 ? parts[parts.length - 1] : '';
+					if (!end) {
+						return false;
+					}
+					return currentMinutes > timeStringToMinutes(end.trim());
+				});
+			}
+
 			if (item.sessions && item.sessions.length > 1) {
 				const sessionsHtml = item.sessions.map(session => 
 					`<div class="course-session">${session.time} · ${session.location}</div>`
 				).join('');
 				return `
 					<div style="margin-bottom: 12px;">
-						<div class="course-name">${item.courseName}</div>
-						<div class="course-detail">${item.teacher}</div>
+						<div class="course-name${isFinished ? ' course-finished' : ''}">${item.courseName}</div>
+						<div class="course-detail${isFinished ? ' course-finished' : ''}">${item.teacher}</div>
 						<div class="course-sessions">${sessionsHtml}</div>
 					</div>
 				`;
 			} else {
 				return `
 					<div style="margin-bottom: 12px;">
-						<div class="course-name">${item.courseName}</div>
-						<div class="course-detail">${item.time} · ${item.teacher}</div>
+						<div class="course-name${isFinished ? ' course-finished' : ''}">${item.courseName}</div>
+						<div class="course-detail${isFinished ? ' course-finished' : ''}">${item.time} · ${item.teacher}</div>
 					</div>
 				`;
 			}
 		}).join('');
-		
-		// 获取主要教室信息
-		let locationHtml = '';
-		if (mergedCourses.length > 0) {
-			const mainLocation = mergedCourses[0].location || mergedCourses[0].sessions?.[0]?.location || '';
-			locationHtml = formatLocation(mainLocation);
-		}
+
+		const locationEntries = [];
+		mergedCourses.forEach(item => {
+			if (item.sessions && item.sessions.length > 0) {
+				item.sessions.forEach(session => {
+					if (session.location) {
+						locationEntries.push(session.location);
+					}
+				});
+			} else if (item.location) {
+				locationEntries.push(item.location);
+			}
+		});
+
+		const locationHtml = formatLocation(locationEntries);
 		
 		td.innerHTML = `
 			<div class="schedule-time" style="font-weight: ${dayItem.isToday ? '800' : '800'}; opacity: ${dayItem.isToday ? '1' : '0.85'};">
@@ -762,33 +831,38 @@ function initSchedule() {
 		
 		isToggling = true;
 		
-		if (!scheduleVisible) {
-			// 展开前先获取一言数据，避免展开后才刷新
-			await fetchHitokoto();
-			
-			scheduleVisible = true;
-			scheduleContainer.classList.add('visible');
-			scheduleTrigger.classList.add('hidden');
-			
-			// 只在首次打开时启动实时跟随
-			if (!isScheduleRendered && window.ScheduleLive) {
-				// 标记已渲染
-				isScheduleRendered = true;
-				// 等待动画完成后再启动实时跟随
-				setTimeout(() => {
-					window.ScheduleLive.start();
-				}, 650);
+		try {
+			if (!scheduleVisible) {
+				// 展开前先获取一言数据，避免展开后才刷新
+				await fetchHitokoto();
+				
+				scheduleVisible = true;
+				scheduleContainer.classList.add('visible');
+				scheduleTrigger.classList.add('hidden');
+				
+				// 只在首次打开时启动实时跟随
+				if (!isScheduleRendered && window.ScheduleLive) {
+					// 标记已渲染
+					isScheduleRendered = true;
+					// 等待动画完成后再启动实时跟随
+					setTimeout(() => {
+						window.ScheduleLive.start();
+					}, 650);
+				}
+			} else {
+				scheduleVisible = false;
+				scheduleContainer.classList.remove('visible');
+				scheduleTrigger.classList.remove('hidden');
 			}
-		} else {
-			scheduleVisible = false;
-			scheduleContainer.classList.remove('visible');
-			scheduleTrigger.classList.remove('hidden');
+		} catch (error) {
+			console.error('切换课表时出错:', error);
+		} finally {
+			// 无论成功还是失败，都要重置标志
+			// 动画完成后才允许下次切换（500ms 是动画时间）
+			setTimeout(() => {
+				isToggling = false;
+			}, 500);
 		}
-		
-		// 动画完成后才允许下次切换（500ms 是动画时间）
-		setTimeout(() => {
-			isToggling = false;
-		}, 500);
 	}
 
 	// 点击页面其他地方关闭课表

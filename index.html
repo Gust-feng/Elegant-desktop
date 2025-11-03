@@ -195,6 +195,50 @@
 		</div>
 	</body>
 	<script type="text/javascript">
+		// ==================== 休眠唤醒检测 ====================
+		// 检测系统从休眠/睡眠中唤醒，重新激活页面交互
+		let lastActiveTime = Date.now();
+		
+		function checkWakeup() {
+			const now = Date.now();
+			const timeDiff = now - lastActiveTime;
+			
+			// 如果时间差超过5分钟，可能是从休眠中恢复
+			if (timeDiff > 20 * 60 * 1000) {
+				// 强制重新启用指针事件
+				document.body.style.pointerEvents = 'auto';
+				
+				// 重新触发一次布局计算，强制浏览器重绘
+				document.body.offsetHeight;
+				
+				// 触发一个自定义事件，通知其他模块
+				window.dispatchEvent(new Event('system-wakeup'));
+			}
+			
+			lastActiveTime = now;
+		}
+		
+		// 每秒检查一次
+		setInterval(checkWakeup, 1000);
+		
+		// 监听页面可见性变化
+		document.addEventListener('visibilitychange', function() {
+			if (!document.hidden) {
+				checkWakeup();
+			}
+		});
+		
+		// 监听鼠标移动，确保交互正常
+		let mouseCheckTimer = null;
+		document.addEventListener('mousemove', function() {
+			if (mouseCheckTimer) return;
+			mouseCheckTimer = setTimeout(() => {
+				document.body.style.pointerEvents = 'auto';
+				mouseCheckTimer = null;
+			}, 100);
+		}, { passive: true });
+		
+		// ==================== 天气功能 ====================
 		// 天气功能
 		const API_KEY = '高德web密钥';
 		const CITY_CODE = '地理编码';
@@ -465,7 +509,7 @@
 		function checkWeatherUpdate() {
 			const now = Date.now();
 			const baseInterval = 30 * 60 * 1000; // 30分钟
-			const allInterval = 3 * 60 * 60 * 1000; // 3小时
+			const allInterval = 2 * 60 * 60 * 1000; // 2小时
 
 			// 检查base天气更新
 			if (now - lastBaseUpdate >= baseInterval) {

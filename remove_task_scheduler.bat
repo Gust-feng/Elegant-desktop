@@ -9,11 +9,13 @@ echo 1. 课表更新-工作日中午
 echo 2. 课表更新-工作日晚上
 echo 3. 课表更新-周末晚上
 echo.
+echo ⚠️ 请确保以管理员身份运行此脚本！
+echo.
 pause
 
 echo.
 echo [1/3] 删除任务: 课表更新-工作日中午...
-schtasks /delete /tn "课表更新-工作日中午" /f
+schtasks /delete /tn "课表更新-工作日中午" /f 2>nul
 if %errorlevel% equ 0 (
     echo ✅ 任务删除成功
 ) else (
@@ -22,7 +24,7 @@ if %errorlevel% equ 0 (
 
 echo.
 echo [2/3] 删除任务: 课表更新-工作日晚上...
-schtasks /delete /tn "课表更新-工作日晚上" /f
+schtasks /delete /tn "课表更新-工作日晚上" /f 2>nul
 if %errorlevel% equ 0 (
     echo ✅ 任务删除成功
 ) else (
@@ -31,7 +33,7 @@ if %errorlevel% equ 0 (
 
 echo.
 echo [3/3] 删除任务: 课表更新-周末晚上...
-schtasks /delete /tn "课表更新-周末晚上" /f
+schtasks /delete /tn "课表更新-周末晚上" /f 2>nul
 if %errorlevel% equ 0 (
     echo ✅ 任务删除成功
 ) else (

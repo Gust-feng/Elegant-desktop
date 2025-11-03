@@ -295,16 +295,30 @@ def main():
             WEEK_NUM = str(cached_week + 1)
             print(f"📅 周末模式：从缓存周次 {cached_week} 获取下一周 (第{WEEK_NUM}周)")
         else:
-            # 如果没有缓存，获取当前周(留空)，然后自动变成下一周
-            WEEK_NUM = ''
-            print(f"📅 周末模式：缓存不存在，获取当前周并自动切换到下一周")
+            # 如果没有缓存，先获取当前周确定周次，然后获取下一周
+            print(f"周末模式：缓存不存在，先获取当前周确定周次")
+            WEEK_NUM = ''  # 先获取当前周
+            temp_token = load_token()
+            if not temp_token:
+                temp_token = get_new_token()
+            if temp_token:
+                temp_success, temp_data = get_schedule(temp_token, '')
+                if temp_success and temp_data and temp_data.get('data'):
+                    current_week = int(temp_data['data'][0]['date'][0].get('zc', '0'))
+                    if current_week > 0:
+                        WEEK_NUM = str(current_week + 1)
+                        print(f"检测到当前是第{current_week}周，将获取第{WEEK_NUM}周课表")
+            
+            if not WEEK_NUM:
+                WEEK_NUM = ''
+                print(f"无法确定周次，获取当前周课表")
     else:
         # 工作日：获取当前周
         WEEK_NUM = ''
-        print(f"📅 工作日模式：获取当前周课表")
+        print(f"工作日模式：获取当前周课表")
     
     # 步骤1: 尝试加载已有Token
-    print(f"\n🔍 检查本地Token缓存...")
+    print(f"\n检查本地Token缓存...")
     token = load_token()
     
     # 步骤2: 如果没有Token，获取新Token
@@ -317,37 +331,37 @@ def main():
     
     # 步骤3: 使用Token获取课表
     if WEEK_NUM:
-        print(f"\n📅 正在获取第{WEEK_NUM}周课表...")
+        print(f"\n正在获取第{WEEK_NUM}周课表...")
     else:
-        print(f"\n📅 正在获取当前周课表...")
+        print(f"\n正在获取当前周课表...")
     
     success, data = get_schedule(token, WEEK_NUM)
     
     # 步骤4: 如果Token失效，重新获取并重试
     if not success:
-        print("\n🔄 Token已失效，正在重新获取...")
+        print("\nToken已失效，正在重新获取...")
         token = get_new_token()
         if not token:
-            print("❌ 重新获取Token失败，程序终止")
+            print("重新获取Token失败，程序终止")
             return
         
         # 使用新Token重试
         if WEEK_NUM:
-            print(f"\n📅 使用新Token重新获取第{WEEK_NUM}周课表...")
+            print(f"\n使用新Token重新获取第{WEEK_NUM}周课表...")
         else:
-            print(f"\n📅 使用新Token重新获取当前周课表...")
+            print(f"\n使用新Token重新获取当前周课表...")
         
         success, data = get_schedule(token, WEEK_NUM)
         
         if not success:
-            print("❌ 即使使用新Token仍然失败，程序终止")
+            print("即使使用新Token仍然失败，程序终止")
             return
     
     # 步骤5: 保存课表数据
     if success and data:
         save_schedule(data)
         print("\n" + "=" * 70)
-        print("✅ 课表爬取完成!")
+        print("课表爬取完成!")
         print("=" * 70)
     else:
         print("\n❌ 未能成功获取课表数据")
