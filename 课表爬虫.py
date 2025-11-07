@@ -331,37 +331,37 @@ def main():
     
     # 步骤3: 使用Token获取课表
     if WEEK_NUM:
-        print(f"\n正在获取第{WEEK_NUM}周课表...")
+        print(f"\n📅 正在获取第{WEEK_NUM}周课表...")
     else:
-        print(f"\n正在获取当前周课表...")
+        print(f"\n📅 正在获取当前周课表...")
     
     success, data = get_schedule(token, WEEK_NUM)
     
     # 步骤4: 如果Token失效，重新获取并重试
     if not success:
-        print("\nToken已失效，正在重新获取...")
+        print("\n🔄 Token已失效，正在重新获取...")
         token = get_new_token()
         if not token:
-            print("重新获取Token失败，程序终止")
+            print("❌ 重新获取Token失败，程序终止")
             return
         
         # 使用新Token重试
         if WEEK_NUM:
-            print(f"\n使用新Token重新获取第{WEEK_NUM}周课表...")
+            print(f"\n📅 使用新Token重新获取第{WEEK_NUM}周课表...")
         else:
-            print(f"\n使用新Token重新获取当前周课表...")
+            print(f"\n📅 使用新Token重新获取当前周课表...")
         
         success, data = get_schedule(token, WEEK_NUM)
         
         if not success:
-            print("即使使用新Token仍然失败，程序终止")
+            print("❌ 即使使用新Token仍然失败，程序终止")
             return
     
     # 步骤5: 保存课表数据
     if success and data:
         save_schedule(data)
         print("\n" + "=" * 70)
-        print("课表爬取完成!")
+        print("✅ 课表爬取完成!")
         print("=" * 70)
     else:
         print("\n❌ 未能成功获取课表数据")

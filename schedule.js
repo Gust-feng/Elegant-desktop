@@ -274,12 +274,14 @@ async function loadScheduleByWeek(weekNumber) {
 		ScheduleData.topInfo = scheduleData.topInfo ? scheduleData.topInfo[0] : null;
 
 		// 从 date 数组构建 weekDays（星期名称数组）
-		// date 数组按 xqid (0-6) 排序，对应周日-周六
+		// date 数组的 xqid: 1-6=周一到周六, 0=周日
+		// 我们需要转换为 1-7 索引: 1=周一, 7=周日
 		if (ScheduleData.date && ScheduleData.date.length === 7) {
-			ScheduleData.weekDays = new Array(7);
+			ScheduleData.weekDays = new Array(8); // 索引0不使用，1-7对应周一到周日
 			ScheduleData.date.forEach(d => {
-				const dayIndex = parseInt(d.xqid);
-				ScheduleData.weekDays[dayIndex] = '周' + d.xqmc;
+				const xqid = parseInt(d.xqid);
+				const weekDayIndex = xqid === 0 ? 7 : xqid; // 0转换为7（周日）
+				ScheduleData.weekDays[weekDayIndex] = '周' + d.xqmc;
 			});
 		}
 		
@@ -558,13 +560,27 @@ function renderScheduleList() {
 		return;
 	}
 
-	// 获取今天是周几
-	const today = new Date().getDay();
+	// 获取今天是周几 (转换为1-7格式: 1=周一, 7=周日)
+	const todayJS = new Date().getDay(); // 0=周日, 1=周一, ..., 6=周六
+	const today = todayJS === 0 ? 7 : todayJS; // 转换为1-7格式
+	
+	// 获取当前周次
+	const currentWeek = ScheduleData.week || WeekManager.currentWeek;
 	
 	// 按星期分组课程
 	const coursesByDay = {};
 	
 	courses.forEach(course => {
+		// 过滤：只显示当前周次的课程
+		const classWeekDetails = course.classWeekDetails || '';
+		if (currentWeek && classWeekDetails) {
+			// classWeekDetails 格式: ",1,2,3,4,5,6,7,8,9,10,11,12,"
+			const weekPattern = `,${currentWeek},`;
+			if (!classWeekDetails.includes(weekPattern)) {
+				return; // 不是本周的课程，跳过
+			}
+		}
+		
 		const weekDay = parseInt(course.weekDay);
 		const classTime = course.classTime || '';
 		
